@@ -66,10 +66,4 @@ Service tests use a mocked HTTP client and do not hit the network.
 
 ## API
 
-All data comes from the public [GitHub REST API](https://docs.github.com/en/rest):
-
-| Endpoint | Used for |
-|---|---|
-| `GET /search/users?q=followers:>10000&sort=followers` | catalog |
-| `GET /users/{login}` | search and profile |
-| `GET /users/{login}/repos` | repository list |
+All data comes from the public [GitHub REST API](https://docs.github.com/en/rest). The catalog uses `GET /search/users` filtered by follower count, search and profile use `GET /users/{login}`, and the repository list uses `GET /users/{login}/repos`.
