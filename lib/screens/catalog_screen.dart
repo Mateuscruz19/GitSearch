@@ -69,12 +69,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final username = context.select<AuthProvider, String?>((auth) {
+      return auth.username;
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('GitSearch'),
         actions: [
+          if (username != null) _UserBadge(username: username),
           IconButton(
-            tooltip: 'Log out',
+            tooltip: 'Sair',
             onPressed: _logout,
             icon: const Icon(Icons.logout),
           ),
@@ -156,6 +161,37 @@ class _CatalogScreenState extends State<CatalogScreen> {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _UserBadge extends StatelessWidget {
+  final String username;
+
+  const _UserBadge({required this.username});
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = '${username[0].toUpperCase()}${username.substring(1)}';
+    final compact = MediaQuery.sizeOf(context).width < 500;
+
+    return Semantics(
+      label: 'Usuário conectado: $displayName',
+      excludeSemantics: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: compact ? 105 : 150),
+          child: Chip(
+            avatar: CircleAvatar(child: Text(displayName[0])),
+            label: Text(
+              compact ? displayName : 'Olá, $displayName',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
       ),
     );
   }
