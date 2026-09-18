@@ -6,13 +6,21 @@ import 'providers/favorites_provider.dart';
 import 'providers/following_provider.dart';
 import 'routes.dart';
 import 'services/github_service.dart';
+import 'services/storage_service.dart';
 
 void main() {
-  runApp(const GitSearchApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final storage = SharedPreferencesStorageService();
+  final authProvider = AuthProvider(storage);
+
+  runApp(GitSearchApp(authProvider: authProvider));
 }
 
 class GitSearchApp extends StatelessWidget {
-  const GitSearchApp({super.key});
+  final AuthProvider authProvider;
+
+  const GitSearchApp({super.key, required this.authProvider});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +30,7 @@ class GitSearchApp extends StatelessWidget {
           create: (_) => GitHubService(),
           dispose: (_, service) => service.dispose(),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => FavoritesProvider()),
         ChangeNotifierProvider(create: (_) => FollowingProvider()),
       ],
