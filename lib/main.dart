@@ -13,16 +13,35 @@ Future<void> main() async {
 
   final storage = SharedPreferencesStorageService();
   final authProvider = AuthProvider(storage);
+  final favoritesProvider = FavoritesProvider(storage);
+  final followingProvider = FollowingProvider(storage);
 
-  await authProvider.restoreSession();
+  await Future.wait([
+    authProvider.restoreSession(),
+    favoritesProvider.load(),
+    followingProvider.load(),
+  ]);
 
-  runApp(GitSearchApp(authProvider: authProvider));
+  runApp(
+    GitSearchApp(
+      authProvider: authProvider,
+      favoritesProvider: favoritesProvider,
+      followingProvider: followingProvider,
+    ),
+  );
 }
 
 class GitSearchApp extends StatelessWidget {
   final AuthProvider authProvider;
+  final FavoritesProvider favoritesProvider;
+  final FollowingProvider followingProvider;
 
-  const GitSearchApp({super.key, required this.authProvider});
+  const GitSearchApp({
+    super.key,
+    required this.authProvider,
+    required this.favoritesProvider,
+    required this.followingProvider,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,8 +52,8 @@ class GitSearchApp extends StatelessWidget {
           dispose: (_, service) => service.dispose(),
         ),
         ChangeNotifierProvider.value(value: authProvider),
-        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
-        ChangeNotifierProvider(create: (_) => FollowingProvider()),
+        ChangeNotifierProvider.value(value: favoritesProvider),
+        ChangeNotifierProvider.value(value: followingProvider),
       ],
       child: MaterialApp(
         title: 'GitSearch',
