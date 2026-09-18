@@ -37,15 +37,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
       _error = null;
     });
     try {
-      final result =
-          await context.read<GitHubService>().getPopularUsers(page: _page);
+      final result = await context.read<GitHubService>().getPopularUsers(
+        page: _page,
+      );
+      if (!mounted) return;
       setState(() {
         _users.addAll(result.items);
         _page = result.nextPage;
         _hasMore = result.hasMore;
       });
     } on GitHubException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted) setState(() => _error = e.message);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
