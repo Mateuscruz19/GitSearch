@@ -7,6 +7,7 @@ import '../services/storage_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   static const _usersKey = 'auth_users';
+  static const _sessionKey = 'auth_session';
 
   final StorageService _storage;
   String? _username;
@@ -16,6 +17,17 @@ class AuthProvider extends ChangeNotifier {
   String? get username => _username;
 
   bool get isLoggedIn => _username != null;
+
+  Future<void> restoreSession() async {
+    final savedUsername = await _storage.loadJson(_sessionKey);
+    final users = await _loadUsers();
+
+    if (savedUsername is String && users.containsKey(savedUsername)) {
+      _username = savedUsername;
+    } else {
+      await _storage.remove(_sessionKey);
+    }
+  }
 
   Future<String?> register(String username, String password) async {
     final normalizedUsername = _normalizeUsername(username);
@@ -29,7 +41,7 @@ class AuthProvider extends ChangeNotifier {
 
     users[normalizedUsername] = _hashPassword(normalizedUsername, password);
     await _storage.saveJson(_usersKey, users);
-    _completeLogin(normalizedUsername);
+    await _startSession(normalizedUsername);
     return null;
   }
 
@@ -44,16 +56,18 @@ class AuthProvider extends ChangeNotifier {
       return 'Invalid username or password.';
     }
 
-    _completeLogin(normalizedUsername);
+    await _startSession(normalizedUsername);
     return null;
   }
 
-  void _completeLogin(String username) {
+  Future<void> _startSession(String username) async {
+    await _storage.saveJson(_sessionKey, username);
     _username = username;
     notifyListeners();
   }
 
   Future<void> logout() async {
+    await _storage.remove(_sessionKey);
     _username = null;
     notifyListeners();
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/github_user.dart';
+import '../providers/auth_provider.dart';
 import '../routes.dart';
 import '../services/github_exception.dart';
 import '../services/github_service.dart';
@@ -58,11 +59,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
     Navigator.pushNamed(context, AppRoutes.search);
   }
 
+  Future<void> _logout() async {
+    await context.read<AuthProvider>().logout();
+    if (!mounted) return;
+    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.login, (_) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('GitSearch'),
+        actions: [
+          IconButton(
+            tooltip: 'Log out',
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Padding(

@@ -8,11 +8,13 @@ import 'routes.dart';
 import 'services/github_service.dart';
 import 'services/storage_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final storage = SharedPreferencesStorageService();
   final authProvider = AuthProvider(storage);
+
+  await authProvider.restoreSession();
 
   runApp(GitSearchApp(authProvider: authProvider));
 }
@@ -48,7 +50,15 @@ class GitSearchApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        initialRoute: AppRoutes.login,
+        initialRoute: authProvider.isLoggedIn
+            ? AppRoutes.catalog
+            : AppRoutes.login,
+        onGenerateInitialRoutes: (routeName) => [
+          MaterialPageRoute(
+            settings: RouteSettings(name: routeName),
+            builder: AppRoutes.routes[routeName]!,
+          ),
+        ],
         routes: AppRoutes.routes,
         onGenerateRoute: AppRoutes.onGenerateRoute,
       ),
