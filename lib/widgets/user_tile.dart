@@ -14,6 +14,8 @@ class UserTile extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Open profile of ${user.login}',
+      excludeSemantics: true,
+      onTap: onTap,
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -35,7 +37,7 @@ class UserTile extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 child: Text(
                   user.login,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleSmall,
