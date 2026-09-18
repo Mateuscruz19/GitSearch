@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/following_provider.dart';
+import 'providers/viewed_provider.dart';
 import 'routes.dart';
 import 'services/github_service.dart';
 import 'services/storage_service.dart';
@@ -15,11 +16,13 @@ Future<void> main() async {
   final authProvider = AuthProvider(storage);
   final favoritesProvider = FavoritesProvider(storage);
   final followingProvider = FollowingProvider(storage);
+  final viewedProvider = ViewedProvider(storage);
 
   await Future.wait([
     authProvider.restoreSession(),
     favoritesProvider.load(),
     followingProvider.load(),
+    viewedProvider.load(),
   ]);
 
   runApp(
@@ -27,6 +30,7 @@ Future<void> main() async {
       authProvider: authProvider,
       favoritesProvider: favoritesProvider,
       followingProvider: followingProvider,
+      viewedProvider: viewedProvider,
     ),
   );
 }
@@ -35,12 +39,14 @@ class GitSearchApp extends StatelessWidget {
   final AuthProvider authProvider;
   final FavoritesProvider favoritesProvider;
   final FollowingProvider followingProvider;
+  final ViewedProvider viewedProvider;
 
   const GitSearchApp({
     super.key,
     required this.authProvider,
     required this.favoritesProvider,
     required this.followingProvider,
+    required this.viewedProvider,
   });
 
   @override
@@ -54,6 +60,7 @@ class GitSearchApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: favoritesProvider),
         ChangeNotifierProvider.value(value: followingProvider),
+        ChangeNotifierProvider.value(value: viewedProvider),
       ],
       child: MaterialApp(
         title: 'GitSearch',

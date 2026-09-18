@@ -6,6 +6,7 @@ import 'screens/favorites_screen.dart';
 import 'screens/following_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/search_screen.dart';
+import 'screens/viewed_screen.dart';
 
 class AppRoutes {
   static const String login = '/';
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String details = '/details';
   static const String favorites = '/favorites';
   static const String following = '/following';
+  static const String viewed = '/viewed';
 
   static final Map<String, WidgetBuilder> routes = {
     login: (_) => const LoginScreen(),
@@ -21,6 +23,7 @@ class AppRoutes {
     search: (_) => const SearchScreen(),
     favorites: (_) => const FavoritesScreen(),
     following: (_) => const FollowingScreen(),
+    viewed: (_) => const ViewedScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

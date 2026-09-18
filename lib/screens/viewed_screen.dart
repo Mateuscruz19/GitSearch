@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/github_user.dart';
-import '../providers/favorites_provider.dart';
 import '../providers/viewed_provider.dart';
 import '../routes.dart';
 import '../widgets/user_tile.dart';
 
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
+class ViewedScreen extends StatelessWidget {
+  const ViewedScreen({super.key});
 
   void _openDetails(BuildContext context, GitHubUser user) {
     context.read<ViewedProvider>().markViewed(user);
@@ -17,12 +16,12 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favorites = context.watch<FavoritesProvider>().favorites;
+    final viewed = context.watch<ViewedProvider>().viewed;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Favorites')),
-      body: favorites.isEmpty
-          ? const Center(child: Text('No favorites yet'))
+      appBar: AppBar(title: const Text('Viewed')),
+      body: viewed.isEmpty
+          ? const Center(child: Text('No viewed profiles yet'))
           : GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -31,10 +30,10 @@ class FavoritesScreen extends StatelessWidget {
                 crossAxisSpacing: 12,
                 childAspectRatio: 0.8,
               ),
-              itemCount: favorites.length,
+              itemCount: viewed.length,
               itemBuilder: (_, i) => UserTile(
-                user: favorites[i],
-                onTap: () => _openDetails(context, favorites[i]),
+                user: viewed[i],
+                onTap: () => _openDetails(context, viewed[i]),
               ),
             ),
     );

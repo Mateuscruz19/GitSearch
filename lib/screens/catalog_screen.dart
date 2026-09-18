@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/github_user.dart';
 import '../providers/auth_provider.dart';
+import '../providers/viewed_provider.dart';
 import '../routes.dart';
 import '../services/github_exception.dart';
 import '../services/github_service.dart';
@@ -54,6 +55,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   }
 
   void _openDetails(GitHubUser user) {
+    context.read<ViewedProvider>().markViewed(user);
     Navigator.pushNamed(context, AppRoutes.details, arguments: user.login);
   }
 

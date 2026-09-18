@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'catalog_screen.dart';
 import 'favorites_screen.dart';
 import 'following_screen.dart';
+import 'viewed_screen.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -18,6 +19,7 @@ class _HomeShellState extends State<HomeShell> {
     CatalogScreen(),
     FavoritesScreen(),
     FollowingScreen(),
+    ViewedScreen(),
   ];
 
   @override
@@ -31,6 +33,7 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(icon: Icon(Icons.grid_view), label: 'Catalog'),
           NavigationDestination(icon: Icon(Icons.favorite_border), label: 'Favorites'),
           NavigationDestination(icon: Icon(Icons.people_outline), label: 'Following'),
+          NavigationDestination(icon: Icon(Icons.visibility_outlined), label: 'Viewed'),
         ],
       ),
     );

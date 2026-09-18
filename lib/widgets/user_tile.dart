@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/github_user.dart';
+import '../providers/favorites_provider.dart';
 
 class UserTile extends StatelessWidget {
   final GitHubUser user;
@@ -24,13 +26,23 @@ class UserTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: Image.network(
-                  user.avatarUrl,
-                  fit: BoxFit.cover,
-                  semanticLabel: 'Avatar of ${user.login}',
-                  errorBuilder: (_, _, _) => const _AvatarPlaceholder(),
-                  loadingBuilder: (_, child, progress) =>
-                      progress == null ? child : const _AvatarPlaceholder(),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      user.avatarUrl,
+                      fit: BoxFit.cover,
+                      semanticLabel: 'Avatar of ${user.login}',
+                      errorBuilder: (_, _, _) => const _AvatarPlaceholder(),
+                      loadingBuilder: (_, child, progress) =>
+                          progress == null ? child : const _AvatarPlaceholder(),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: _FavoriteButton(user: user),
+                    ),
+                  ],
                 ),
               ),
               Padding(
@@ -59,6 +71,37 @@ class _AvatarPlaceholder extends StatelessWidget {
     return ColoredBox(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: const Icon(Icons.person, size: 48),
+    );
+  }
+}
+
+class _FavoriteButton extends StatelessWidget {
+  final GitHubUser user;
+
+  const _FavoriteButton({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final isFavorite = context.select<FavoritesProvider, bool>(
+      (favorites) => favorites.isFavorite(user),
+    );
+
+    return Semantics(
+      label: isFavorite
+          ? 'Remove ${user.login} from favorites'
+          : 'Add ${user.login} to favorites',
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.black45,
+        shape: const CircleBorder(),
+        child: IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.redAccent : Colors.white,
+          ),
+          onPressed: () => context.read<FavoritesProvider>().toggle(user),
+        ),
+      ),
     );
   }
 }
