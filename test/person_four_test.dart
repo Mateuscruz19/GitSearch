@@ -99,4 +99,49 @@ void main() {
     expect(find.text('Sign in'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('password fields remain editable after registration errors', (
+    tester,
+  ) async {
+    final auth = AuthProvider(MemoryStorage());
+    await auth.register('existinguser', 'secret1');
+    await auth.logout();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: auth,
+        child: const MaterialApp(home: LoginScreen()),
+      ),
+    );
+    await tester.tap(find.widgetWithText(TextButton, 'Create a local account'));
+    await tester.pump();
+
+    var fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), 'existinguser');
+    await tester.enterText(fields.at(1), 'secret1');
+    await tester.enterText(fields.at(2), 'secret1');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This username is already registered.'), findsOneWidget);
+    fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(2), 'changed1');
+    expect(
+      tester.widget<TextFormField>(fields.at(2)).controller!.text,
+      'changed1',
+    );
+
+    await tester.enterText(fields.at(1), 'secret2');
+    await tester.enterText(fields.at(2), 'different');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create account'));
+    await tester.pump();
+
+    expect(find.text('Passwords do not match.'), findsOneWidget);
+    fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(1), 'changed2');
+    expect(
+      tester.widget<TextFormField>(fields.at(1)).controller!.text,
+      'changed2',
+    );
+  });
 }

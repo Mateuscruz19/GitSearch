@@ -25,6 +25,9 @@ class _LoginFormState extends State<_LoginForm> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmationController = TextEditingController();
+  final _usernameFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmationFocus = FocusNode();
 
   bool _isRegistering = false;
   bool _isSubmitting = false;
@@ -36,11 +39,17 @@ class _LoginFormState extends State<_LoginForm> {
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmationController.dispose();
+    _usernameFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmationFocus.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      _focusFirstInvalidField();
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -69,13 +78,32 @@ class _LoginFormState extends State<_LoginForm> {
         return;
       }
       setState(() => _message = error);
+      _restoreFocus(_isRegistering ? _usernameFocus : _passwordFocus);
     } catch (_) {
       if (mounted) {
         setState(() => _message = 'Could not save the local account.');
+        _restoreFocus(_usernameFocus);
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _focusFirstInvalidField() {
+    if (_usernameController.text.trim().length < 3) {
+      _restoreFocus(_usernameFocus);
+    } else if (_passwordController.text.length < 6) {
+      _restoreFocus(_passwordFocus);
+    } else {
+      _restoreFocus(_confirmationFocus);
+    }
+  }
+
+  void _restoreFocus(FocusNode focusNode) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) focusNode.requestFocus();
+    });
   }
 
   @override
@@ -90,7 +118,7 @@ class _LoginFormState extends State<_LoginForm> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: AutofillGroup(
+              child: FocusTraversalGroup(
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -113,8 +141,9 @@ class _LoginFormState extends State<_LoginForm> {
                       const SizedBox(height: 24),
                       TextFormField(
                         controller: _usernameController,
-                        autofillHints: const [AutofillHints.username],
+                        focusNode: _usernameFocus,
                         textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                         decoration: const InputDecoration(
                           labelText: 'Username',
                           prefixIcon: Icon(Icons.person_outline),
@@ -130,17 +159,17 @@ class _LoginFormState extends State<_LoginForm> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _passwordController,
-                        autofillHints: [
-                          _isRegistering
-                              ? AutofillHints.newPassword
-                              : AutofillHints.password,
-                        ],
+                        focusNode: _passwordFocus,
                         obscureText: _obscurePassword,
                         textInputAction: _isRegistering
                             ? TextInputAction.next
                             : TextInputAction.done,
                         onFieldSubmitted: (_) {
-                          if (!_isRegistering) _submit();
+                          if (_isRegistering) {
+                            _confirmationFocus.requestFocus();
+                          } else {
+                            _submit();
+                          }
                         },
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -171,7 +200,7 @@ class _LoginFormState extends State<_LoginForm> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _confirmationController,
-                          autofillHints: const [AutofillHints.newPassword],
+                          focusNode: _confirmationFocus,
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _submit(),
