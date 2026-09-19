@@ -19,12 +19,23 @@ Future<void> main() async {
   final followingProvider = FollowingProvider(storage);
   final viewedProvider = ViewedProvider(storage);
 
-  await Future.wait([
-    authProvider.restoreSession(),
-    favoritesProvider.load(),
-    followingProvider.load(),
-    viewedProvider.load(),
+  await authProvider.restoreSession();
+
+  // Favorites, following and viewed belong to the logged-in user, so they
+  // are reloaded whenever someone logs in or out.
+  var loadedUsername = authProvider.username;
+  Future<void> loadUserData() => Future.wait([
+    favoritesProvider.load(loadedUsername),
+    followingProvider.load(loadedUsername),
+    viewedProvider.load(loadedUsername),
   ]);
+
+  await loadUserData();
+  authProvider.addListener(() {
+    if (authProvider.username == loadedUsername) return;
+    loadedUsername = authProvider.username;
+    loadUserData();
+  });
 
   runApp(
     GitSearchApp(

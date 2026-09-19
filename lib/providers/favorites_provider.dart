@@ -8,6 +8,7 @@ class FavoritesProvider extends ChangeNotifier {
 
   final StorageService _storage;
   final List<GitHubUser> _favorites = [];
+  String? _username;
 
   FavoritesProvider(this._storage);
 
@@ -15,8 +16,14 @@ class FavoritesProvider extends ChangeNotifier {
 
   bool isFavorite(GitHubUser user) => _favorites.contains(user);
 
-  Future<void> load() async {
-    final savedFavorites = await _storage.loadJson(_storageKey);
+  /// Loads the list saved for [username]. Without a user the list stays
+  /// empty and nothing is persisted.
+  Future<void> load([String? username]) async {
+    _username = username;
+    final savedFavorites =
+        username == null ? null : await _storage.loadJson(_keyFor(username));
+    if (_username != username) return;
+
     _favorites
       ..clear()
       ..addAll(_readUsers(savedFavorites));
@@ -30,11 +37,20 @@ class FavoritesProvider extends ChangeNotifier {
       _favorites.add(user);
     }
     notifyListeners();
+    await _save();
+  }
+
+  Future<void> _save() async {
+    final username = _username;
+    if (username == null) return;
+
     await _storage.saveJson(
-      _storageKey,
+      _keyFor(username),
       _favorites.map((favorite) => favorite.toJson()).toList(),
     );
   }
+
+  String _keyFor(String username) => '$_storageKey:$username';
 
   List<GitHubUser> _readUsers(Object? value) {
     if (value is! List) return [];
