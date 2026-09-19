@@ -68,13 +68,15 @@ void main() {
     final favorites = FavoritesProvider(storage);
     final following = FollowingProvider(storage);
 
+    await favorites.load('tester');
+    await following.load('tester');
     await favorites.toggle(user);
     await following.toggle(user);
 
     final restoredFavorites = FavoritesProvider(storage);
     final restoredFollowing = FollowingProvider(storage);
-    await restoredFavorites.load();
-    await restoredFollowing.load();
+    await restoredFavorites.load('tester');
+    await restoredFollowing.load('tester');
 
     expect(restoredFavorites.isFavorite(user), isTrue);
     expect(restoredFollowing.isFollowing(user), isTrue);

@@ -50,14 +50,14 @@ void main() {
     final storage = MemoryStorage();
     final favorites = FavoritesProvider(storage);
 
-    await favorites.load();
+    await favorites.load('tester');
     expect(favorites.isFavorite(user), isFalse);
 
     await favorites.toggle(user);
     expect(favorites.isFavorite(user), isTrue);
 
     final restored = FavoritesProvider(storage);
-    await restored.load();
+    await restored.load('tester');
     expect(restored.isFavorite(user), isTrue);
 
     await favorites.toggle(user);
@@ -68,7 +68,7 @@ void main() {
     final storage = MemoryStorage();
     final viewed = ViewedProvider(storage);
 
-    await viewed.load();
+    await viewed.load('tester');
     expect(viewed.isViewed(user), isFalse);
 
     await viewed.markViewed(user);
@@ -79,7 +79,7 @@ void main() {
     expect(viewed.viewed.map((u) => u.login), ['octocat', 'monalisa']);
 
     final restored = ViewedProvider(storage);
-    await restored.load();
+    await restored.load('tester');
     expect(restored.isViewed(user), isTrue);
     expect(restored.isViewed(otherUser), isTrue);
   });
