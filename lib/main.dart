@@ -8,6 +8,7 @@ import 'providers/viewed_provider.dart';
 import 'routes.dart';
 import 'services/github_service.dart';
 import 'services/storage_service.dart';
+import 'providers/search_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,7 @@ class GitSearchApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: favoritesProvider),
         ChangeNotifierProvider.value(value: followingProvider),
         ChangeNotifierProvider.value(value: viewedProvider),
+        ChangeNotifierProvider(create: (ctx) => SearchProvider(ctx.read<GitHubService>())),
       ],
       child: MaterialApp(
         title: 'GitSearch',

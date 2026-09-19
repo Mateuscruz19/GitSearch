@@ -63,6 +63,27 @@ class GitHubService {
     );
   }
 
+  Future<PaginatedResult<GitHubUser>> searchUsers(
+    String term, {
+    int page = 1,
+    int perPage = defaultPerPage,
+  }) async {
+    final json = await _getJson(
+      '/search/users',
+      query: {'q': term, 'page': '$page', 'per_page': '$perPage'},
+    ) as Map<String, dynamic>;
+
+    final items = _parseList(json['items'], GitHubUser.fromJson);
+    final totalCount = json['total_count'] as int;
+
+    return PaginatedResult(
+      items: items,
+      page: page,
+      hasMore: page * perPage < totalCount,
+      totalCount: totalCount,
+    );
+  }
+
   List<T> _parseList<T>(
     dynamic json,
     T Function(Map<String, dynamic>) fromJson,
@@ -87,9 +108,9 @@ class GitHubService {
   }
 
   Map<String, String> get _headers => {
-        'Accept': 'application/vnd.github+json',
-        if (_token.isNotEmpty) 'Authorization': 'Bearer $_token',
-      };
+    'Accept': 'application/vnd.github+json',
+    if (_token.isNotEmpty) 'Authorization': 'Bearer $_token',
+  };
 
   void dispose() => _client.close();
 }
