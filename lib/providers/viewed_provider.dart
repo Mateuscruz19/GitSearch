@@ -8,6 +8,7 @@ class ViewedProvider extends ChangeNotifier {
 
   final StorageService _storage;
   final List<GitHubUser> _viewed = [];
+  String? _username;
 
   ViewedProvider(this._storage);
 
@@ -15,8 +16,14 @@ class ViewedProvider extends ChangeNotifier {
 
   bool isViewed(GitHubUser user) => _viewed.contains(user);
 
-  Future<void> load() async {
-    final savedViewed = await _storage.loadJson(_storageKey);
+  /// Loads the list saved for [username]. Without a user the list stays
+  /// empty and nothing is persisted.
+  Future<void> load([String? username]) async {
+    _username = username;
+    final savedViewed =
+        username == null ? null : await _storage.loadJson(_keyFor(username));
+    if (_username != username) return;
+
     _viewed
       ..clear()
       ..addAll(_readUsers(savedViewed));
@@ -27,11 +34,20 @@ class ViewedProvider extends ChangeNotifier {
     _viewed.remove(user);
     _viewed.insert(0, user);
     notifyListeners();
+    await _save();
+  }
+
+  Future<void> _save() async {
+    final username = _username;
+    if (username == null) return;
+
     await _storage.saveJson(
-      _storageKey,
+      _keyFor(username),
       _viewed.map((viewedUser) => viewedUser.toJson()).toList(),
     );
   }
+
+  String _keyFor(String username) => '$_storageKey:$username';
 
   List<GitHubUser> _readUsers(Object? value) {
     if (value is! List) return [];

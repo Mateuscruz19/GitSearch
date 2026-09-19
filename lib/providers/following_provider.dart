@@ -8,6 +8,7 @@ class FollowingProvider extends ChangeNotifier {
 
   final StorageService _storage;
   final List<GitHubUser> _following = [];
+  String? _username;
 
   FollowingProvider(this._storage);
 
@@ -15,8 +16,14 @@ class FollowingProvider extends ChangeNotifier {
 
   bool isFollowing(GitHubUser user) => _following.contains(user);
 
-  Future<void> load() async {
-    final savedFollowing = await _storage.loadJson(_storageKey);
+  /// Loads the list saved for [username]. Without a user the list stays
+  /// empty and nothing is persisted.
+  Future<void> load([String? username]) async {
+    _username = username;
+    final savedFollowing =
+        username == null ? null : await _storage.loadJson(_keyFor(username));
+    if (_username != username) return;
+
     _following
       ..clear()
       ..addAll(_readUsers(savedFollowing));
@@ -30,11 +37,20 @@ class FollowingProvider extends ChangeNotifier {
       _following.add(user);
     }
     notifyListeners();
+    await _save();
+  }
+
+  Future<void> _save() async {
+    final username = _username;
+    if (username == null) return;
+
     await _storage.saveJson(
-      _storageKey,
+      _keyFor(username),
       _following.map((user) => user.toJson()).toList(),
     );
   }
+
+  String _keyFor(String username) => '$_storageKey:$username';
 
   List<GitHubUser> _readUsers(Object? value) {
     if (value is! List) return [];
