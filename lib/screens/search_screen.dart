@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,25 +17,35 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  //inserçao do timer -> debounce para nao chamar a api a cada letra digitada, mas sim 500ms depois da ultima letra digitada
-  Timer? _debounce;
+  final TextEditingController _controller = TextEditingController();
+  bool _searched = false;
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
+  Future<void> _search() async {
+    final query = _controller.text.trim();
+    if (query.isEmpty) {
+      context.read<SearchProvider>().clearSearch();
+      setState(() => _searched = false);
+      return;
+    }
 
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (query.isNotEmpty) {
-        context.read<SearchProvider>().searchUser(query);
-      } else {
-        context.read<SearchProvider>().clearSearch();
+    setState(() => _searched = true);
+    final provider = context.read<SearchProvider>();
+    await provider.searchUser(query);
+    if (!mounted) return;
+
+    // RF08: quando o termo corresponde a um login, vai direto para os detalhes.
+    for (final user in provider.users) {
+      if (user.login.toLowerCase() == query.toLowerCase()) {
+        _openDetails(user);
+        return;
       }
-    });
+    }
   }
 
   void _openDetails(GitHubUser user) {
@@ -53,10 +61,25 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            SearchBar(
-              hintText: 'Digite o login do GitHub...',
-              leading: const Icon(Icons.search),
-              onChanged: _onSearchChanged,
+            TextField(
+              controller: _controller,
+              textInputAction: TextInputAction.search,
+              onSubmitted: (_) => _search(),
+              decoration: const InputDecoration(
+                labelText: 'Login do GitHub',
+                hintText: 'Digite o login do GitHub...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _search,
+                icon: const Icon(Icons.search),
+                label: const Text('Buscar'),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -72,8 +95,13 @@ class _SearchScreenState extends State<SearchScreen> {
                   }
 
                   if (provider.users.isEmpty) {
-                    return const Center(
-                      child: Text('Nenhum usuário encontrado.'),
+                    return Center(
+                      child: Text(
+                        _searched
+                            ? 'Nenhum usuário encontrado.'
+                            : 'Digite um login e toque em Buscar.',
+                        textAlign: TextAlign.center,
+                      ),
                     );
                   }
 
